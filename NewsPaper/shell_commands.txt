@@ -1,0 +1,56 @@
+1) user1 = User.objects.create_user(username='RayBrudbery')
+   user2 = User.objects.create_user(username='JohnLennon')
+
+2) author1 = Author.objects.create(author=user1)
+   author2 = Author.objects.create(author=user2)
+
+3) category1 = Category.objects.create(name='Музыка')
+   category2 = Category.objects.create(name='Музыкальные инструменты')
+   category3 = Category.objects.create(name='Рецепты')
+   category4 = Category.objects.create(name='Политика')
+
+4) post1 = Post.objects.create(author=author1, content_type=Post.article, heading='Лучшие инструменты 2024 года', content='Содержание статьи')
+   post2 = Post.objects.create(author=author2, content_type=Post.article, heading='Как приготовить самый вкусный новогодний салат', content='Этот салат у меня на первом месте, я его готовлю почти на все праздники. Выглядит он очень просто. Зато какой же вкусный! Нежная варено-копченая ветчина, копченая курица или говядина отлично сочетаются с хрустящей картошкой фри, острой корейской морковью и свеклой, а также со свежей капустой. Картофель можно использовать покупной в пачках (это заметная экономия времени) или же приготовить в домашних условиях (а это намного вкуснее, вот рецепт обалденно вкусного и хрустящего картофеля пай). С вечера можно замариновать морковь со свеклой и пожарить картофель, перед застольем останется только нарезать капусту с ветчиной.')
+   post3 = Post.objects.create(author=author1, content_type=Post.news, heading='Топ самых виртуозных музыкантов, прошедших в финал соревнований', content='Содержание новости')
+   post3.category.add(category1, category2, category4)
+
+5) post1.category.add(category1, category2)
+   post2.category.add(category3)
+   post3.category.add(category1, category2, category4)
+
+6) post = Post.objects.get(id=1)
+   user = User.objects.get(id=3)
+   comment1 = Comment.objects.create(post=post, user=user, text='Это текст комментария')
+
+   post2 = Post.objects.get(id=2)
+   user2 = User.objects.get(id=4)
+   comment2 = Comment.objects.create(post=post2, user=user2, text='Это еще один текст комментария')
+
+   post3 = Post.objects.get(id=3)
+   user3 = User.objects.get(id=3)
+   comment3 = Comment.objects.create(post=post3, user=user3, text='Очередной текст комментария')
+
+   post4 = Post.objects.get(id=1)
+   user4 = User.objects.get(id=4)
+   comment4 = Comment.objects.create(post=post4, user = user4, text='Четвертый комментарий')
+
+7) post1.like()   сomment1.like()
+   post2.like()   comment2.like()
+   post2.like()   comment2.like()
+   post3.like()   сomment3.like()
+   post3.like()   comment4.like()
+   post3.like()   comment4.like()
+
+8) author1 = Author.objects.get(id=1)
+   author2 = Author.objects.get(id=2)
+   author1.update_rating()
+   author2.update_rating()
+
+9) Author.objects.order_by('-rating').values('author__username', 'rating').first()
+
+10) Post.objects.order_by('-rating').values('datetime', 'author__author__username', 'rating', 'heading', 'content').first()
+    Post.objects.order_by('-rating').values('id').first()
+    post = Post.objects.get(id=3)
+    post.preview()
+
+11) Comment.objects.filter(post=post).values('datetime','user','rating','text')

@@ -30,6 +30,9 @@ class Author(models.Model):
 class Category(models.Model):
     name = models.CharField(max_length=255, unique=True)
 
+    def __str__(self):
+        return self.name
+
 
 class Post(models.Model):
     article = 'AR'
@@ -47,6 +50,9 @@ class Post(models.Model):
     heading = models.CharField(max_length=255)
     content = models.TextField()
     rating = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f'{self.heading} : {self.content}'
 
     def like(self):
         self.rating += 1
@@ -72,6 +78,9 @@ class Comment(models.Model):
     text = models.TextField()
     datetime = models.DateTimeField(auto_now_add=True)
     rating = models.IntegerField(default=0)
+
+    def __str__(self):
+        return self.text
 
     def like(self):
         self.rating += 1

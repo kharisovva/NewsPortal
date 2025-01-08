@@ -7,17 +7,54 @@ News
 
 {% block content %}
 <h1>Все статьи и новости: {{news|length}}</h1>
-   {% if news %}
-   <table>
-       {% for n in news %}
-       <tr>
-            <td>{{n.heading|censor}}</td>
-            <td>{{n.datetime|date:"d.m.Y"}}</td>
-            <td>{{n.content|truncatewords:20|censor}}</td>
-       </tr>
-       {% endfor %}
-   </table>
-   {% else %}
-       <h2>Новостей и статей нет!</h2>
-   {% endif %}
+
+<!-- Форма фильтрации -->
+<form action="" method="get">
+    {{ filterset.form.as_p }}
+    <input type="submit" value="Найти" />
+</form>
+<hr>
+
+<!-- Таблица с новостями -->
+{% if news %}
+<table>
+   <thead>
+        <tr>
+            <th>Заголовок</th>
+            <th>Дата</th>
+            <th>Содержание</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for n in news %}
+        <tr>
+            <td>{{ n.heading|censor }}</td>
+            <td>{{ n.datetime|date:"d.m.Y" }}</td>
+            <td>{{ n.content|truncatewords:20|censor }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<h2>Новостей и статей нет!</h2>
+{% endif %}
+
+<!-- Пагинация -->
+{% if page_obj.has_previous %}
+    <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page=1">1</a>
+    {% if page_obj.previous_page_number != 1 %}
+        ...
+        <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}">{{ page_obj.previous_page_number }}</a>
+    {% endif %}
+{% endif %}
+
+{{ page_obj.number }}
+
+{% if page_obj.has_next %}
+    <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.next_page_number }}">{{ page_obj.next_page_number }}</a>
+    {% if paginator.num_pages != page_obj.next_page_number %}
+        ...
+        <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.paginator.num_pages }}">{{ page_obj.paginator.num_pages }}</a>
+    {% endif %}
+{% endif %}
 {% endblock content %}

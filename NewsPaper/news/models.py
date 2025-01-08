@@ -1,10 +1,14 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.urls import reverse
 
 
 class Author(models.Model):
     author = models.OneToOneField(User, on_delete=models.CASCADE)
     rating = models.IntegerField(default=0)
+
+    def __str__(self):
+        return self.author.username
 
     def update_rating(self):
         posts_rating = 0
@@ -65,6 +69,7 @@ class Post(models.Model):
     def preview(self):
         preview_text = self.content[:125] + "..." if len(self.content) > 125 else self.content
         return preview_text
+
 
 
 class PostCategory(models.Model):

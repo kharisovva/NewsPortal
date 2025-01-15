@@ -73,4 +73,4 @@ def upgrade_me(request):
     author_group = Group.objects.get(name='author')
     if not request.user.groups.filter(name='author').exists():
         author_group.user_set.add(user)
-    return redirect('/news')
+    return redirect('/news/')

@@ -1,17 +1,18 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.shortcuts import render
+from django.template.loader import render_to_string
 from django.urls import reverse_lazy, reverse
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.shortcuts import redirect
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, User
 from django.contrib.auth.decorators import login_required
+from django.core.mail import send_mail, EmailMultiAlternatives
 
 from .forms import PostForm
-from .models import Post
+from .models import Post, Author
 from .filters import NewsFilter
 
 
-class NewsList(LoginRequiredMixin,ListView):
+class NewsList(LoginRequiredMixin, ListView):
     model = Post
     ordering = '-datetime'
     template_name = 'news.html'
@@ -37,7 +38,7 @@ class NewsDetail(DetailView):
 
 
 class PostCreate(PermissionRequiredMixin, CreateView):
-    permission_required = ('news.add_post')
+    permission_required = 'news.add_post'
     model = Post
     form_class = PostForm
     template_name = 'news_edit.html'
@@ -48,11 +49,24 @@ class PostCreate(PermissionRequiredMixin, CreateView):
         if self.request.path == reverse('news_create'):
             post.content_type = 'NE'
         post.save()
+
+        html_content = render_to_string(
+            'post_created.html',
+            {'post': post}
+        )
+        msg = EmailMultiAlternatives(
+            subject=Post.heading,
+            body=f'Здравствуй! Новая статья в твоем любимом разделе!\n{post.content[:50]}',
+            from_email='kharisovak@yandex.ru',
+            to=['harisova_k@mail.ru']
+        )
+        msg.attach_alternative(html_content, 'text/html')
+        msg.send()
         return super().form_valid(form)
 
 
 class PostEdit(PermissionRequiredMixin, UpdateView):
-    permission_required = ('news.change_post')
+    permission_required = 'news.change_post'
     model = Post
     form_class = PostForm
     template_name = 'news_edit.html'
@@ -60,7 +74,7 @@ class PostEdit(PermissionRequiredMixin, UpdateView):
 
 
 class PostDelete(PermissionRequiredMixin, DeleteView):
-    permission_required = ('news.delete_post')
+    permission_required = 'news.delete_post'
     model = Post
     template_name = 'news_delete.html'
     success_url = reverse_lazy('news_articles')

@@ -8,7 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail, EmailMultiAlternatives
 
 from .forms import PostForm
-from .models import Post, Author
+from .models import Post, Category
 from .filters import NewsFilter
 
 
@@ -54,8 +54,9 @@ class PostCreate(PermissionRequiredMixin, CreateView):
             'post_created.html',
             {'post': post}
         )
+        post_heading = post.heading
         msg = EmailMultiAlternatives(
-            subject=Post.heading,
+            subject=f"Новая статья: {post_heading}",
             body=f'Здравствуй! Новая статья в твоем любимом разделе!\n{post.content[:50]}',
             from_email='kharisovak@yandex.ru',
             to=['harisova_k@mail.ru']
@@ -87,3 +88,13 @@ def upgrade_me(request):
     if not request.user.groups.filter(name='author').exists():
         author_group.user_set.add(user)
     return redirect('/news/')
+
+
+@login_required
+def subscribe(request):
+    user = request.user
+    is_subscriber = Category.objects.get(name='subscribers')
+    if not request.user.subscribers.filter(name='subscribers').exists():
+        is_subscriber.user_set.add(request.user)
+    return redirect('/news/')
+

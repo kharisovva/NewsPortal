@@ -14,5 +14,6 @@ class NewsFilter(FilterSet):
         fields = {
             'heading',
             'author',
-            'datetime'
+            'datetime',
+            'category'
         }

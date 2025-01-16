@@ -9,4 +9,8 @@
 <h2>{{ one_news.heading|censor }}</h2>
 <h3>{{ one_news.datetime|date:"d.m.Y" }}</h3>
 <p>{{ one_news.content|censor}}</p>
+
+{% if is_not_subscriber %}
+<button> <a href="/news/subscribe/"> Хочу подписаться на эту категорию!</a> </button>
+{% endif %}
 {% endblock content %}

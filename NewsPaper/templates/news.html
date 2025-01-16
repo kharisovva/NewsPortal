@@ -39,6 +39,10 @@ News
 <h2>Новостей и статей нет!</h2>
 {% endif %}
 
+{% if is_not_author %}
+<button> <a href="/news/upgrade/"> Хочу быть автором!</a> </button>
+{% endif %}
+
 <!-- Пагинация -->
 {% if page_obj.has_previous %}
     <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page=1">1</a>

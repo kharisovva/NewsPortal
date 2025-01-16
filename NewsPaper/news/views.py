@@ -1,12 +1,17 @@
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.shortcuts import render
 from django.urls import reverse_lazy, reverse
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.shortcuts import redirect
+from django.contrib.auth.models import Group
+from django.contrib.auth.decorators import login_required
 
 from .forms import PostForm
 from .models import Post
 from .filters import NewsFilter
 
-class NewsList(ListView):
+
+class NewsList(LoginRequiredMixin,ListView):
     model = Post
     ordering = '-datetime'
     template_name = 'news.html'
@@ -21,6 +26,7 @@ class NewsList(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['filterset'] = self.filterset
+        context['is_not_author'] = not self.request.user.groups.filter(name='author').exists()
         return context
 
 
@@ -30,7 +36,8 @@ class NewsDetail(DetailView):
     context_object_name = 'one_news'
 
 
-class PostCreate(CreateView):
+class PostCreate(PermissionRequiredMixin, CreateView):
+    permission_required = ('news.add_post')
     model = Post
     form_class = PostForm
     template_name = 'news_edit.html'
@@ -44,14 +51,25 @@ class PostCreate(CreateView):
         return super().form_valid(form)
 
 
-class PostEdit(UpdateView):
+class PostEdit(PermissionRequiredMixin, UpdateView):
+    permission_required = ('news.change_post')
     model = Post
     form_class = PostForm
     template_name = 'news_edit.html'
     success_url = reverse_lazy('news_articles')
 
 
-class PostDelete(DeleteView):
+class PostDelete(PermissionRequiredMixin, DeleteView):
+    permission_required = ('news.delete_post')
     model = Post
     template_name = 'news_delete.html'
     success_url = reverse_lazy('news_articles')
+
+
+@login_required
+def upgrade_me(request):
+    user = request.user
+    author_group = Group.objects.get(name='author')
+    if not request.user.groups.filter(name='author').exists():
+        author_group.user_set.add(user)
+    return redirect('/news/')

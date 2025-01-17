@@ -1,0 +1,63 @@
+{% extends 'flatpages/default.html' %}
+{% load custom_filtres %}
+
+{% block title %}
+News
+{% endblock title %}
+
+{% block content %}
+<h1>Все статьи и новости в категории: {{ category.name }}</h1>
+
+{% if not category in user.subscribers.all %}
+<button> <a href="{% url 'subscribe' category.id %}">Подписаться</a> </button>
+{% else %}
+<h3>Вы уже подписаны на категорию {{ category.name }}</h3>
+{% endif %}
+
+<!-- Таблица с новостями -->
+{% if news %}
+<table>
+   <thead>
+        <tr>
+            <th>Заголовок</th>
+            <th>Дата</th>
+            <th>Содержание</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for n in news %}
+        <tr>
+            <td>{{ n.heading|censor }}</td>
+            <td>{{ n.datetime|date:"d.m.Y" }}</td>
+            <td>{{ n.content|truncatewords:20|censor }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<h2>Новостей и статей нет!</h2>
+{% endif %}
+
+{% if is_not_author %}
+<button> <a href="/news/upgrade/"> Хочу быть автором!</a> </button>
+{% endif %}
+
+<!-- Пагинация -->
+{% if page_obj.has_previous %}
+    <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page=1">1</a>
+    {% if page_obj.previous_page_number != 1 %}
+        ...
+        <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}">{{ page_obj.previous_page_number }}</a>
+    {% endif %}
+{% endif %}
+
+{{ page_obj.number }}
+
+{% if page_obj.has_next %}
+    <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.next_page_number }}">{{ page_obj.next_page_number }}</a>
+    {% if paginator.num_pages != page_obj.next_page_number %}
+        ...
+        <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.paginator.num_pages }}">{{ page_obj.paginator.num_pages }}</a>
+    {% endif %}
+{% endif %}
+{% endblock content %}

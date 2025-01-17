@@ -23,6 +23,7 @@ News
             <th>Заголовок</th>
             <th>Дата</th>
             <th>Содержание</th>
+            <th>Категория</th>
         </tr>
     </thead>
     <tbody>
@@ -31,6 +32,11 @@ News
             <td>{{ n.heading|censor }}</td>
             <td>{{ n.datetime|date:"d.m.Y" }}</td>
             <td>{{ n.content|truncatewords:20|censor }}</td>
+            <td>
+            {% for c in n.category.all %}
+                <a href="{% url 'news_category' c.id %}">{{ c.name }}</a>
+            {% endfor %}
+            </td>
         </tr>
         {% endfor %}
     </tbody>

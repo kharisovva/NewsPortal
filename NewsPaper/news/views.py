@@ -31,6 +31,28 @@ class NewsList(LoginRequiredMixin, ListView):
         return context
 
 
+class CategoryList(LoginRequiredMixin, ListView):
+    model = Post
+    ordering = '-datetime'
+    template_name = 'news_category.html'
+    context_object_name = 'news'
+    paginate_by = 10
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.category = None
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        self.category = Category.objects.get(pk=self.kwargs.get('pk'))
+        queryset = queryset.filter(category=self.category)
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['category'] = self.category
+        return context
+
 class NewsDetail(DetailView):
     model = Post
     template_name = 'newsone.html'
@@ -49,20 +71,6 @@ class PostCreate(PermissionRequiredMixin, CreateView):
         if self.request.path == reverse('news_create'):
             post.content_type = 'NE'
         post.save()
-
-        html_content = render_to_string(
-            'post_created.html',
-            {'post': post}
-        )
-        post_heading = post.heading
-        msg = EmailMultiAlternatives(
-            subject=f"Новая статья: {post_heading}",
-            body=f'Здравствуй! Новая статья в твоем любимом разделе!\n{post.content[:50]}',
-            from_email='kharisovak@yandex.ru',
-            to=['harisova_k@mail.ru']
-        )
-        msg.attach_alternative(html_content, 'text/html')
-        msg.send()
         return super().form_valid(form)
 
 
@@ -91,10 +99,10 @@ def upgrade_me(request):
 
 
 @login_required
-def subscribe(request):
+def subscribe(request, pk):
     user = request.user
-    is_subscriber = Category.objects.get(name='subscribers')
-    if not request.user.subscribers.filter(name='subscribers').exists():
-        is_subscriber.user_set.add(request.user)
-    return redirect('/news/')
+    is_subscriber = Category.objects.get(pk=pk)
+    if not user.subscribers.filter(pk=pk).exists():
+        is_subscriber.subscribers.add(user)
+    return redirect(request.META.get('HTTP_REFERER'))
 

@@ -8,5 +8,6 @@
 <body>
     <h2>{{ post.heading }}</h2>
     <p> Новая статья в вашем любимом разделе! {{ post.content|truncatechars:50 }} </p>
+    <p>Прочитать статью можно по ссылке: <a href="{{ post_url }}">Читать статью</a></p>
 </body>
 </html>

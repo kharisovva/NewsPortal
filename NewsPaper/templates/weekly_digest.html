@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Еженедельная подборка статей</title>
+</head>
+<body>
+    <h1>Здравствуйте, {{ subscriber.username }}!</h1>
+    <p>Вот список новых статей, опубликованных за последнюю неделю в категории "{{ category.name }}":</p>
+    <ul>
+        {% for post in posts %}
+        <li>
+            <a href="http://127.0.0.1:8000//news/{{ post.id }}">{{ post.heading }}</a> - {{ post.datetime|date:"d M Y H:i" }}
+        </li>
+        {% endfor %}
+    </ul>
+    <p>Приятного чтения!</p>
+</body>
+</html>

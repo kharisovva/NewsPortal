@@ -6,6 +6,7 @@ from django.shortcuts import redirect
 from django.contrib.auth.models import Group, User
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail, EmailMultiAlternatives
+from .tasks import create_news_celery
 
 from .forms import PostForm
 from .models import Post, Category
@@ -71,6 +72,7 @@ class PostCreate(PermissionRequiredMixin, CreateView):
         if self.request.path == reverse('news_create'):
             post.content_type = 'NE'
         post.save()
+        create_news_celery.delay(post.pk)
         return super().form_valid(form)
 
 

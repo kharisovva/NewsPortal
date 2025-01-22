@@ -13,6 +13,5 @@ app.conf.beat_schedule = {
     'action_every_monday_8am': {
         'task': 'tasks.weekly_digest_celery',
         'schedule': crontab(hour=8, minute=0, day_of_week='monday'),
-        'args': (agrs),
     },
 }

@@ -6,14 +6,13 @@ News
 {% endblock title %}
 
 {% block content %}
-<h1>Все статьи и новости: {{news|length}}</h1>
+<h1>Все статьи и новости в категории: {{ category.name }}</h1>
 
-<!-- Форма фильтрации -->
-<form action="" method="get">
-    {{ filterset.form.as_p }}
-    <input type="submit" value="Найти" />
-</form>
-<hr>
+{% if not category in user.subscribers.all %}
+<button> <a href="{% url 'subscribe' category.id %}">Подписаться</a> </button>
+{% else %}
+<h3>Вы уже подписаны на категорию {{ category.name }}</h3>
+{% endif %}
 
 <!-- Таблица с новостями -->
 {% if news %}
@@ -23,7 +22,6 @@ News
             <th>Заголовок</th>
             <th>Дата</th>
             <th>Содержание</th>
-            <th>Категория</th>
         </tr>
     </thead>
     <tbody>
@@ -32,11 +30,6 @@ News
             <td>{{ n.heading|censor }}</td>
             <td>{{ n.datetime|date:"d.m.Y" }}</td>
             <td>{{ n.content|truncatewords:20|censor }}</td>
-            <td>
-            {% for c in n.category.all %}
-                <a href="{% url 'news_category' c.id %}">{{ c.name }}</a>
-            {% endfor %}
-            </td>
         </tr>
         {% endfor %}
     </tbody>

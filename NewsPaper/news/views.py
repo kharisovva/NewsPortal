@@ -1,17 +1,18 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.shortcuts import render
+from django.template.loader import render_to_string
 from django.urls import reverse_lazy, reverse
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.shortcuts import redirect
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, User
 from django.contrib.auth.decorators import login_required
+from django.core.mail import send_mail, EmailMultiAlternatives
 
 from .forms import PostForm
-from .models import Post
+from .models import Post, Category
 from .filters import NewsFilter
 
 
-class NewsList(LoginRequiredMixin,ListView):
+class NewsList(LoginRequiredMixin, ListView):
     model = Post
     ordering = '-datetime'
     template_name = 'news.html'
@@ -30,6 +31,28 @@ class NewsList(LoginRequiredMixin,ListView):
         return context
 
 
+class CategoryList(LoginRequiredMixin, ListView):
+    model = Post
+    ordering = '-datetime'
+    template_name = 'news_category.html'
+    context_object_name = 'news'
+    paginate_by = 10
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.category = None
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        self.category = Category.objects.get(pk=self.kwargs.get('pk'))
+        queryset = queryset.filter(category=self.category)
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['category'] = self.category
+        return context
+
 class NewsDetail(DetailView):
     model = Post
     template_name = 'newsone.html'
@@ -37,7 +60,7 @@ class NewsDetail(DetailView):
 
 
 class PostCreate(PermissionRequiredMixin, CreateView):
-    permission_required = ('news.add_post')
+    permission_required = 'news.add_post'
     model = Post
     form_class = PostForm
     template_name = 'news_edit.html'
@@ -52,7 +75,7 @@ class PostCreate(PermissionRequiredMixin, CreateView):
 
 
 class PostEdit(PermissionRequiredMixin, UpdateView):
-    permission_required = ('news.change_post')
+    permission_required = 'news.change_post'
     model = Post
     form_class = PostForm
     template_name = 'news_edit.html'
@@ -60,7 +83,7 @@ class PostEdit(PermissionRequiredMixin, UpdateView):
 
 
 class PostDelete(PermissionRequiredMixin, DeleteView):
-    permission_required = ('news.delete_post')
+    permission_required = 'news.delete_post'
     model = Post
     template_name = 'news_delete.html'
     success_url = reverse_lazy('news_articles')
@@ -73,3 +96,13 @@ def upgrade_me(request):
     if not request.user.groups.filter(name='author').exists():
         author_group.user_set.add(user)
     return redirect('/news/')
+
+
+@login_required
+def subscribe(request, pk):
+    user = request.user
+    is_subscriber = Category.objects.get(pk=pk)
+    if not user.subscribers.filter(pk=pk).exists():
+        is_subscriber.subscribers.add(user)
+    return redirect(request.META.get('HTTP_REFERER'))
+

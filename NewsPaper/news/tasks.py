@@ -5,7 +5,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.timezone import now
 
-from NewsPaper.news.models import Category, Post
+from .models import Category, Post
 
 
 @shared_task

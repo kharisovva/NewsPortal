@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+import logging
+from django.utils.log import DEFAULT_LOGGING
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -180,4 +182,132 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': os.path.join(BASE_DIR, 'cache_files'),
     }
+}
+
+
+LOG_DIR = os.path.join(BASE_DIR, 'logs')  
+if not os.path.exists(LOG_DIR):
+    os.makedirs(LOG_DIR)
+
+# Настройка форматирования логов
+LOG_FORMATTERS = {
+    'verbose': {
+        'format': '{levelname} {asctime} {module} {message}',
+        'style': '{',
+    },
+    'verbose_with_path': {
+        'format': '{levelname} {asctime} {pathname} {message}',
+        'style': '{',
+    },
+    'verbose_with_traceback': {
+        'format': '{levelname} {asctime} {pathname} {message}\n{exc_info}',
+        'style': '{',
+    },
+    'email': {
+        'format': '{levelname} {asctime} {pathname} {message}',
+        'style': '{',
+    },
+}
+
+# Настройка хэндлеров
+LOG_HANDLERS = {
+    'console': {
+        'level': 'DEBUG',
+        'class': 'logging.StreamHandler',
+        'formatter': 'verbose',
+        'filters': ['require_debug_true'],  
+    },
+    'console_warning': {
+        'level': 'WARNING',
+        'class': 'logging.StreamHandler',
+        'formatter': 'verbose_with_path',
+        'filters': ['require_debug_true'],  
+    },
+    'console_error': {
+        'level': 'ERROR',
+        'class': 'logging.StreamHandler',
+        'formatter': 'verbose_with_traceback',
+        'filters': ['require_debug_true'],  
+    },
+    'file_general': {
+        'level': 'INFO',
+        'class': 'logging.FileHandler',
+        'filename': os.path.join(LOG_DIR, 'general.log'),
+        'formatter': 'verbose',
+        'filters': ['require_debug_false'],  
+    },
+    'file_errors': {
+        'level': 'ERROR',
+        'class': 'logging.FileHandler',
+        'filename': os.path.join(LOG_DIR, 'errors.log'),
+        'formatter': 'verbose_with_traceback',
+    },
+    'file_security': {
+        'level': 'INFO',
+        'class': 'logging.FileHandler',
+        'filename': os.path.join(LOG_DIR, 'security.log'),
+        'formatter': 'verbose',
+    },
+    'mail_admins': {
+        'level': 'ERROR',
+        'class': 'django.utils.log.AdminEmailHandler',
+        'formatter': 'email',
+        'filters': ['require_debug_false'],  
+    },
+}
+
+# Настройка фильтров
+LOG_FILTERS = {
+    'require_debug_true': {
+        '()': 'django.utils.log.RequireDebugTrue',  # Фильтр для DEBUG = True
+    },
+    'require_debug_false': {
+        '()': 'django.utils.log.RequireDebugFalse',  # Фильтр для DEBUG = False
+    },
+}
+
+# Настройка логгеров
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': LOG_FORMATTERS,
+    'handlers': LOG_HANDLERS,
+    'filters': LOG_FILTERS,
+    'loggers': {
+        '': {  
+            'handlers': ['console', 'console_warning', 'console_error', 'file_general'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'django': {  
+            'handlers': ['console', 'console_warning', 'console_error', 'file_general'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django.request': {  
+            'handlers': ['file_errors'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'django.server': {  
+            'handlers': ['file_errors'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'django.template': {  
+            'handlers': ['file_errors'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'django.db.backends': {  
+            'handlers': ['file_errors'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'django.security': {  
+            'handlers': ['file_security'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
 }
